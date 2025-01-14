@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Facturación Digital</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    main {
+      padding: 2rem;
+    }
+
+    h1, h2 {
+      margin-bottom: 1rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 400px;
+    }
+
+    form label {
+      font-weight: bold;
+    }
+
+    form input, form select, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    table th, table td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    table th {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    select {
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Sistema de Facturación Digital</h1>
+  </header>
+  <main>
+    <section id="add-client">
+      <h2>Agregar Cliente</h2>
+      <form id="client-form">
+        <label for="client-name">Nombre del Cliente:</label>
+        <input type="text" id="client-name" required>
+        
+        <label for="client-email">Correo Electrónico:</label>
+        <input type="email" id="client-email" required>
+        
+        <label for="client-address">Dirección:</label>
+        <input type="text" id="client-address" required>
+        
+        <label for="payment-months">Meses a Pagar (Selecciona varios si aplica):</label>
+        <select id="payment-months" multiple required>
+          <option value="1">Enero</option>
+          <option value="2">Febrero</option>
+          <option value="3">Marzo</option>
+          <option value="4">Abril</option>
+          <option value="5">Mayo</option>
+          <option value="6">Junio</option>
+          <option value="7">Julio</option>
+          <option value="8">Agosto</option>
+          <option value="9">Septiembre</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+        
+        <label for="payment-amount">Monto Pagado:</label>
+        <input type="number" id="payment-amount" required>
+        
+        <button type="submit">Agregar Cliente</button>
+      </form>
+    </section>
+    
+    <section id="client-list">
+      <h2>Lista de Clientes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Dirección</th>
+            <th>Meses Pagados</th>
+            <th>Monto Pagado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="clients-table">
+          <!-- Aquí se llenarán los datos -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    // Array para almacenar los clientes
+    const clients = [];
+
+    // Selección de elementos del DOM
+    const clientForm = document.getElementById("client-form");
+    const clientsTable = document.getElementById("clients-table");
+
+    // Manejar el envío del formulario
+    clientForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      // Obtener los valores de los campos
+      const name = document.getElementById("client-name").value;
+      const email = document.getElementById("client-email").value;
+      const address = document.getElementById("client-address").value;
+      const months = Array.from(document.getElementById("payment-months").selectedOptions).map(option => option.value);
+      const amount = document.getElementById("payment-amount").value;
+
+      // Agregar cliente al array
+      clients.push({ name, email, address, months, amount });
+
+      // Limpiar el formulario
+      clientForm.reset();
+
+      // Actualizar la tabla de clientes
+      updateClientTable();
+    });
+
+    // Función para actualizar la tabla de clientes
+    function updateClientTable() {
+      // Limpiar la tabla
+      clientsTable.innerHTML = "";
+
+      // Agregar los clientes al DOM
+      clients.forEach((client, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${client.name}</td>
+          <td>${client.email}</td>
+          <td>${client.address}</td>
+          <td>${client.months.map(month => getMonthName(month)).join(", ")}</td>
+          <td>${client.amount}</td>
+          <td class="actions">
+            <button onclick="sendInvoice(${index}, 'email')">Enviar Correo</button>
+            <button onclick="sendInvoice(${index}, 'whatsapp')">Enviar WhatsApp</button>
+          </td>
+        `;
+        clientsTable.appendChild(row);
+      });
+    }
+
+    // Función para obtener el nombre del mes
+    function getMonthName(monthNumber) {
+      const months = {
+        1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril", 5: "Mayo",
+        6: "Junio", 7: "Julio", 8: "Agosto", 9: "Septiembre", 10: "Octubre",
+        11: "Noviembre", 12: "Diciembre"
+      };
+      return months[monthNumber];
+    }
+
+    // Función para enviar factura
+    function sendInvoice(index, method) {
+      const client = clients[index];
+      const message = `Hola ${client.name}, esta es tu factura por el servicio de internet para los meses de ${client.months.map(month => getMonthName(month)).join(", ")}. El monto total es: ${client.amount} MXN.`;
+
+      if (method === "email") {
+        alert(`Se enviaría un correo a ${client.email} con la factura: "${message}"`);
+      } else if (method === "whatsapp") {
+        const whatsappLink = `https://wa.me/?text=${encodeURIComponent(message)}`;
+        window.open(whatsappLink, "_blank");
+      }
+    }
+  </script>
+</body>
+</html>
